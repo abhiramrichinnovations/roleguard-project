@@ -28,8 +28,8 @@ export const RegisterPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(true);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [showStrength, setShowStrength] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -85,10 +85,7 @@ export const RegisterPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name === 'password') {
-      setPasswordStrength(calculateStrength(value));
-      setShowStrength(value.length > 0);
-    }
+    if (name === 'password') setPasswordStrength(calculateStrength(value));
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -101,54 +98,61 @@ export const RegisterPage: React.FC = () => {
       await dispatch(register(formData)).unwrap();
       navigate('/dashboard');
     } catch {
-      // Error handled by Redux
+      // handled by redux
     }
   };
 
   const requirements = [
-    { label: '8+ chars', met: formData.password.length >= 8 },
-    { label: 'Uppercase', met: /[A-Z]/.test(formData.password) },
-    { label: 'Lowercase', met: /[a-z]/.test(formData.password) },
-    { label: 'Number', met: /[0-9]/.test(formData.password) },
-    { label: 'Special char', met: /[!@#$%^&*]/.test(formData.password) },
+    { label: '8+ characters', met: formData.password.length >= 8 },
+    { label: 'Uppercase letter', met: /[A-Z]/.test(formData.password) },
+    { label: 'Lowercase letter', met: /[a-z]/.test(formData.password) },
+    { label: 'One digit', met: /[0-9]/.test(formData.password) },
+    { label: 'Special character', met: /[!@#$%^&*]/.test(formData.password) },
   ];
 
-  const strengthLabel = ['Weak', 'Fair', 'Good', 'Strong', 'Excellent'][passwordStrength - 1];
+  const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+  const strengthLabel = strengthLabels[passwordStrength - 1] || 'Very Weak';
 
   return (
     <div className="auth-shell">
-      {/* LEFT PANEL */}
       <div className="auth-brand-panel">
-        <div className="brand-top">
-          <div className="brand-logo">
-            <div className="brand-logo-icon">R</div>
-            <div className="brand-logo-text">RoleGuard</div>
+        <div className="brand-logo">
+          <div className="brand-logo-icon">R</div>
+          <div className="brand-logo-text">RoleGuard</div>
+        </div>
+
+        <div className="feature-strip">
+          <div className="feature-item">
+            <div className="feature-icon">🔒</div>
+            <div>
+              <h4>Secure Access</h4>
+              <p>Enterprise-grade security</p>
+            </div>
+          </div>
+          <div className="feature-item">
+            <div className="feature-icon">👥</div>
+            <div>
+              <h4>Role Control</h4>
+              <p>Granular permissions</p>
+            </div>
+          </div>
+          <div className="feature-item">
+            <div className="feature-icon">📊</div>
+            <div>
+              <h4>Activity Log</h4>
+              <p>Real-time monitoring</p>
+            </div>
           </div>
         </div>
 
-        <div className="brand-content">
-          <div className="brand-chart">
-            <div className="chart-bar"></div>
-            <div className="chart-bar"></div>
-            <div className="chart-bar"></div>
-            <div className="chart-bar"></div>
-            <div className="chart-bar"></div>
-          </div>
-        </div>
-
-        <div className="brand-footer">
-          Security & Access Control Platform © 2026
-        </div>
+        <div className="brand-copyright">© 2026 RoleGuard. All rights reserved.</div>
       </div>
 
-      {/* RIGHT PANEL */}
       <div className="auth-form-panel">
         <div className="auth-form-container">
           <div className="auth-eyebrow">Get Started</div>
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">
-            Set up your account to access RoleGuard 
-          </p>
+          <h1 className="auth-title">Create your account</h1>
+          <p className="auth-subtitle">Register to access the dashboard</p>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
@@ -181,7 +185,7 @@ export const RegisterPage: React.FC = () => {
 
             <div className="form-group">
               <label className="form-label">Password</label>
-              <div className="password-wrapper">
+              <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
@@ -202,7 +206,7 @@ export const RegisterPage: React.FC = () => {
               </div>
               {errors.password && <span className="error-text">{errors.password}</span>}
 
-              {showStrength && formData.password && (
+              {formData.password && (
                 <div className="strength-meter">
                   <div className="strength-bars">
                     {[1, 2, 3, 4, 5].map((i) => (
@@ -212,9 +216,7 @@ export const RegisterPage: React.FC = () => {
                       />
                     ))}
                   </div>
-                  <div className={`strength-text ${strengthLabel?.toLowerCase() || ''}`}>
-                    {strengthLabel || 'Very Weak'}
-                  </div>
+                  <div className="strength-text">{strengthLabel}</div>
 
                   <ul className="requirements">
                     {requirements.map((req) => (
@@ -244,6 +246,17 @@ export const RegisterPage: React.FC = () => {
               )}
             </div>
 
+            <div className="form-row">
+              <label className="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />
+                <span>I agree to the Terms & Privacy Policy</span>
+              </label>
+            </div>
+
             {error && <div className="error-alert">{error}</div>}
 
             <button type="submit" className="btn-submit" disabled={isLoading}>
@@ -258,11 +271,8 @@ export const RegisterPage: React.FC = () => {
             </button>
           </form>
 
-          <div className="form-divider">or</div>
-
           <p className="auth-footer">
-            Already have an account?{' '}
-            <Link to="/login">Sign in</Link>
+            Already have an account? <Link to="/login">Sign in</Link>
           </p>
         </div>
       </div>
