@@ -24,12 +24,7 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "ignoreDeprecations": "6.0"
+    "moduleResolution": "node10"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
