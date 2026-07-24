@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
-import { RootState, AppDispatch } from '../store';
-import { fetchCurrentUser } from '../store/slices/authSlice';
+import { RootState } from '../store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,18 +12,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles = [],
 }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, user, isLoading, tokens } = useSelector(
+  // Session state (isAuthenticated/user) is established once in App.tsx via
+  // fetchCurrentUser(), which reads the httpOnly cookie. ProtectedRoute just
+  // reads that result — it should not re-fetch or track tokens itself.
+  const { isAuthenticated, user, isInitialized } = useSelector(
     (state: RootState) => state.auth
   );
 
-  useEffect(() => {
-    if (isAuthenticated && !user && tokens) {
-      dispatch(fetchCurrentUser());
-    }
-  }, [isAuthenticated, user, tokens, dispatch]);
-
-  if (isLoading) {
+  // App.tsx already blocks rendering of routes until isInitialized is true,
+  // but guard here too in case ProtectedRoute is ever used outside that flow.
+  if (!isInitialized) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
@@ -33,7 +30,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (!isAuthenticated || !tokens) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

@@ -1,6 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { store } from '../store';
-import { setTokens, logout } from '../store/slices/authSlice';
+import { logout } from '../store/slices/authSlice';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -8,47 +7,35 @@ class ApiClient {
   private client: AxiosInstance;
   private isRefreshing = false;
   private failedQueue: Array<{
-    resolve: (token: string) => void;
+    resolve: () => void;
     reject: (error: Error) => void;
   }> = [];
 
   constructor() {
     this.client = axios.create({
       baseURL: API_URL,
-      withCredentials: true,
+      withCredentials: true, // sends httpOnly cookies automatically on every request
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    this.client.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const state = store.getState();
-        const token = state.auth.tokens?.accessToken;
-
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+    // No request interceptor needed — the browser attaches the httpOnly
+    // accessToken cookie to every request automatically. No JS-readable
+    // token exists to attach manually, which is the point of httpOnly cookies.
 
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+        const { store } = await import('../store');
 
         if (error.response?.status === 401 && !originalRequest._retry) {
           if (this.isRefreshing) {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
             })
-              .then((token) => {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-                return this.client(originalRequest);
-              })
+              .then(() => this.client(originalRequest))
               .catch((err) => Promise.reject(err));
           }
 
@@ -56,19 +43,12 @@ class ApiClient {
           originalRequest._retry = true;
 
           try {
-            const response = await axios.post(
-              `${API_URL}/auth/refresh`,
-              {},
-              { withCredentials: true }
-            );
+            // Backend sets a fresh accessToken cookie on success — nothing to store client-side.
+            await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
 
-            const newTokens = response.data.data.tokens;
-            store.dispatch(setTokens(newTokens));
-
-            this.failedQueue.forEach((prom) => prom.resolve(newTokens.accessToken));
+            this.failedQueue.forEach((prom) => prom.resolve());
             this.failedQueue = [];
 
-            originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
             return this.client(originalRequest);
           } catch (refreshError) {
             this.failedQueue.forEach((prom) =>

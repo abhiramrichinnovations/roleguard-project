@@ -48,6 +48,8 @@ router.post('/register', registerLimiter, async (req: Request, res: Response) =>
       maxAge: 15 * 60 * 1000,
     });
 
+    // SECURITY: tokens are NOT included in the response body.
+    // They live only in httpOnly cookies, inaccessible to JS.
     return res.status(201).json({
       status: 'success',
       message: 'Registration successful',
@@ -57,10 +59,6 @@ router.post('/register', registerLimiter, async (req: Request, res: Response) =>
           email: user.email,
           username: user.username,
           role: user.role,
-        },
-        tokens: {
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
         },
       },
     });
@@ -110,6 +108,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
       maxAge: 15 * 60 * 1000,
     });
 
+    // SECURITY: tokens are NOT included in the response body.
     return res.status(200).json({
       status: 'success',
       message: 'Login successful',
@@ -119,10 +118,6 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
           email: user.email,
           username: user.username,
           role: user.role,
-        },
-        tokens: {
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
         },
       },
     });
@@ -171,10 +166,10 @@ router.post('/refresh', async (req: Request, res: Response) => {
       maxAge: 15 * 60 * 1000,
     });
 
+    // SECURITY: no tokens in the response body — the cookie is already set.
     return res.status(200).json({
       status: 'success',
       message: 'Token refreshed',
-      data: { tokens },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Token refresh failed';
@@ -197,7 +192,7 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response) =
     await userService.logout(req.user.userId);
 
     res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
 
     return res.status(200).json({
       status: 'success',

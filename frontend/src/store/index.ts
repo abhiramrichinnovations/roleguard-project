@@ -1,9 +1,13 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice';
+import profileReducer from './slices/profileSlice';
+import workspaceReducer from './slices/workspaceSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    profile: profileReducer,
+    workspace: workspaceReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

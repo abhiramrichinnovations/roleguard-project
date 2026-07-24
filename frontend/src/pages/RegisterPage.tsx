@@ -28,6 +28,7 @@ export const RegisterPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
@@ -113,41 +114,58 @@ export const RegisterPage: React.FC = () => {
   const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
   const strengthLabel = strengthLabels[passwordStrength - 1] || 'Very Weak';
 
+  const EyeIcon = ({ isOpen }: { isOpen: boolean }) => (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {isOpen ? (
+        <>
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <>
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+          <line x1="1" y1="1" x2="23" y2="23" />
+        </>
+      )}
+    </svg>
+  );
+
   return (
     <div className="auth-shell">
+      {/* LEFT PANEL */}
       <div className="auth-brand-panel">
-        <div className="brand-logo">
-          <div className="brand-logo-icon">R</div>
-          <div className="brand-logo-text">RoleGuard</div>
-        </div>
-
-        <div className="feature-strip">
-          <div className="feature-item">
-            <div className="feature-icon">🔒</div>
-            <div>
-              <h4>Secure Access</h4>
-              <p>Enterprise-grade security</p>
-            </div>
-          </div>
-          <div className="feature-item">
-            <div className="feature-icon">👥</div>
-            <div>
-              <h4>Role Control</h4>
-              <p>Granular permissions</p>
-            </div>
-          </div>
-          <div className="feature-item">
-            <div className="feature-icon">📊</div>
-            <div>
-              <h4>Activity Log</h4>
-              <p>Real-time monitoring</p>
-            </div>
+        <div className="brand-top">
+          <div className="brand-logo">
+            <div className="brand-logo-icon">R</div>
+            <div className="brand-logo-text">RoleGuard</div>
           </div>
         </div>
 
-        <div className="brand-copyright">© 2026 RoleGuard. All rights reserved.</div>
+        <div className="brand-content">
+          <div className="brand-chart">
+            <div className="chart-bar"></div>
+            <div className="chart-bar"></div>
+            <div className="chart-bar"></div>
+            <div className="chart-bar"></div>
+            <div className="chart-bar"></div>
+          </div>
+        </div>
+
+        <div className="brand-footer">
+          RoleGuard © 2026
+        </div>
       </div>
 
+      {/* RIGHT PANEL */}
       <div className="auth-form-panel">
         <div className="auth-form-container">
           <div className="auth-eyebrow">Get Started</div>
@@ -185,7 +203,7 @@ export const RegisterPage: React.FC = () => {
 
             <div className="form-group">
               <label className="form-label">Password</label>
-              <div style={{ position: 'relative' }}>
+              <div className="password-wrapper">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
@@ -199,9 +217,10 @@ export const RegisterPage: React.FC = () => {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
                   tabIndex={-1}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  <EyeIcon isOpen={showPassword} />
                 </button>
               </div>
               {errors.password && <span className="error-text">{errors.password}</span>}
@@ -232,15 +251,26 @@ export const RegisterPage: React.FC = () => {
 
             <div className="form-group">
               <label className="form-label">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Re-enter your password"
-                className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                disabled={isLoading}
-              />
+              <div className="password-wrapper">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Re-enter your password"
+                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  <EyeIcon isOpen={showConfirmPassword} />
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <span className="error-text">{errors.confirmPassword}</span>
               )}
@@ -270,6 +300,8 @@ export const RegisterPage: React.FC = () => {
               )}
             </button>
           </form>
+
+          <div className="form-divider">or continue with</div>
 
           <p className="auth-footer">
             Already have an account? <Link to="/login">Sign in</Link>

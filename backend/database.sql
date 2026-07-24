@@ -5,6 +5,10 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE NOT NULL,
   username VARCHAR(50) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  full_name VARCHAR(100),
+  bio VARCHAR(500),
+  avatar_url TEXT,
+  phone VARCHAR(20),
   role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
   is_active BOOLEAN NOT NULL DEFAULT true,
   last_login TIMESTAMP,
@@ -43,3 +47,13 @@ CREATE TABLE IF NOT EXISTS auth_logs (
 
 CREATE INDEX IF NOT EXISTS idx_auth_logs_user_id ON auth_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_logs_created_at ON auth_logs(created_at);
+
+-- Create account deletions table (audit trail for deleted accounts)
+CREATE TABLE IF NOT EXISTS account_deletions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  deleted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_account_deletions_email ON account_deletions(email);

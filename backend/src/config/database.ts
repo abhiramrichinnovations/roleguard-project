@@ -3,18 +3,22 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const db = new Pool({
-  host: process.env.DB_HOST || 'localhost',
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'safeaccess',
-  user: process.env.DB_USER || 'postgres',
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
-db.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+// Alias so any file importing { db } also works
+export const db = pool;
+
+pool.on('connect', () => {
+  console.log('✅ Database connected');
 });
 
-export const query = (text: string, params?: any[]) => {
-  return db.query(text, params);
-};
+pool.on('error', (err) => {
+  console.error('❌ Unexpected database error', err);
+});

@@ -22,15 +22,7 @@ export const createRateLimiter = (options: RateLimitOptions) => {
     const key = keyGenerator ? keyGenerator(req) : req.ip || 'unknown';
     const now = Date.now();
 
-    if (!store[key]) {
-      store[key] = {
-        count: 1,
-        resetTime: now + windowMs,
-      };
-      return next();
-    }
-
-    if (now > store[key].resetTime) {
+    if (!store[key] || now > store[key].resetTime) {
       store[key] = {
         count: 1,
         resetTime: now + windowMs,
@@ -41,23 +33,17 @@ export const createRateLimiter = (options: RateLimitOptions) => {
     store[key].count++;
 
     if (store[key].count > maxRequests) {
-      res.setHeader('Retry-After', Math.ceil((store[key].resetTime - now) / 1000));
-      return res.status(429).json({
+      const retryAfterSeconds = Math.ceil((store[key].resetTime - now) / 1000);
+      res.status(429).json({
         status: 'error',
         message: 'Too many requests, please try again later',
-        retryAfter: Math.ceil((store[key].resetTime - now) / 1000),
+        retryAfter: retryAfterSeconds,
       });
+      return;
     }
 
     next();
   };
 };
 
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(store).forEach((key) => {
-    if (store[key].resetTime < now) {
-      delete store[key];
-    }
-  });
-}, 60000);
+export const rateLimiter = createRateLimiter;

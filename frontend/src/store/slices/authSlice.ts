@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 interface User {
@@ -10,25 +10,20 @@ interface User {
   lastLogin?: string;
 }
 
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
 interface AuthState {
   user: User | null;
-  tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean; // true once the initial cookie-based session check has completed
   error: string | null;
   lastUpdated: number | null;
 }
 
 const initialState: AuthState = {
   user: null,
-  tokens: null,
   isAuthenticated: false,
   isLoading: false,
+  isInitialized: false,
   error: null,
   lastUpdated: null,
 };
@@ -79,8 +74,9 @@ export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
-      return response.data.data;
+      // Cookie is set automatically by the backend response — nothing to store here.
+      await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+      return null;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Token refresh failed');
     }
@@ -106,23 +102,6 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setTokens: (state, action: PayloadAction<AuthTokens>) => {
-      state.tokens = action.payload;
-      state.isAuthenticated = true;
-      localStorage.setItem('authTokens', JSON.stringify(action.payload));
-    },
-    restoreFromLocalStorage: (state) => {
-      const stored = localStorage.getItem('authTokens');
-      if (stored) {
-        try {
-          const tokens = JSON.parse(stored);
-          state.tokens = tokens;
-          state.isAuthenticated = true;
-        } catch {
-          localStorage.removeItem('authTokens');
-        }
-      }
-    },
   },
   extraReducers: (builder) => {
     // Register
@@ -134,10 +113,8 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
         state.lastUpdated = Date.now();
-        localStorage.setItem('authTokens', JSON.stringify(action.payload.tokens));
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
@@ -152,11 +129,10 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.user = action.payload.user;
-        state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
         state.lastUpdated = Date.now();
-        localStorage.setItem('authTokens', JSON.stringify(action.payload.tokens));
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
@@ -171,53 +147,44 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.isLoading = false;
         state.user = null;
-        state.tokens = null;
         state.isAuthenticated = false;
         state.error = null;
         state.lastUpdated = null;
-        localStorage.removeItem('authTokens');
       })
       .addCase(logout.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
         state.user = null;
-        state.tokens = null;
         state.isAuthenticated = false;
-        localStorage.removeItem('authTokens');
       });
 
-    // Refresh Token
+    // Refresh Token — cookie already updated server-side; nothing to store.
     builder
-      .addCase(refreshToken.fulfilled, (state, action) => {
-        state.tokens = action.payload.tokens;
-        localStorage.setItem('authTokens', JSON.stringify(action.payload.tokens));
-      })
       .addCase(refreshToken.rejected, (state) => {
         state.isAuthenticated = false;
         state.user = null;
-        state.tokens = null;
-        localStorage.removeItem('authTokens');
       });
 
-    // Fetch Current User
+    // Fetch Current User — the source of truth for "am I logged in?" on page load.
     builder
       .addCase(fetchCurrentUser.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.user = action.payload;
+        state.isAuthenticated = true;
         state.lastUpdated = Date.now();
       })
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.isAuthenticated = false;
         state.user = null;
-        state.tokens = null;
-        localStorage.removeItem('authTokens');
       });
   },
 });
 
-export const { clearError, setTokens, restoreFromLocalStorage } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer;

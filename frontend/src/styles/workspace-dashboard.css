@@ -1,0 +1,483 @@
+/* Workspaces page — filter tabs, card grid with menu, sidebar stats */
+
+.ws-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.ws-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.ws-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ws-total-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  background: var(--rg-surface);
+  border: 1px solid var(--rg-border);
+}
+
+.ws-total-chip span {
+  font-size: 0.68rem;
+  color: var(--rg-text-faint);
+}
+
+.ws-total-chip strong {
+  font-size: 1.05rem;
+  color: var(--rg-text);
+}
+
+/* Filter tabs */
+.ws-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.ws-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.55rem;
+  background: var(--rg-surface);
+  border: 1px solid var(--rg-border);
+  color: var(--rg-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.ws-tab:hover {
+  color: var(--rg-text);
+  border-color: var(--rg-border-strong);
+}
+
+.ws-tab.active {
+  background: var(--rg-accent);
+  color: #fff;
+  border-color: var(--rg-accent);
+}
+
+.ws-tab-count {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+/* Two-column layout: grid + sidebar */
+.ws-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ws-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ws-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.ws-card {
+  --accent: #60a5fa;
+  cursor: pointer;
+  padding: 1.1rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--accent);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.ws-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 24px -12px var(--accent);
+}
+
+.ws-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ws-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.ws-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ws-name {
+  margin: 0;
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-role-badge {
+  --role-color: #60a5fa;
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  color: var(--role-color);
+  background: color-mix(in srgb, var(--role-color) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--role-color) 35%, transparent);
+  white-space: nowrap;
+}
+
+.ws-description {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+  min-height: 2.2rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.15rem;
+}
+
+.ws-description-empty {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.ws-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.76rem;
+}
+
+.ws-member-count {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ws-updated {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+/* Card 3-dot menu */
+.card-menu {
+  position: relative;
+}
+
+.card-menu-trigger {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 0.4rem;
+  display: flex;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.card-menu-trigger:hover {
+  color: var(--rg-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.card-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.3rem;
+  min-width: 170px;
+  background: #14152a;
+  border: 1px solid var(--rg-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  padding: 0.35rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-menu-dropdown button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  color: var(--rg-text);
+  font-size: 0.83rem;
+  cursor: pointer;
+}
+
+.card-menu-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.card-menu-danger {
+  color: #f87171 !important;
+}
+
+.card-menu-danger:hover {
+  background: rgba(248, 113, 113, 0.1) !important;
+}
+
+/* "Create new workspace" tile inside the grid */
+.ws-create-tile {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-style: dashed;
+  color: var(--rg-accent);
+  background: none;
+  font-family: inherit;
+  gap: 0.4rem;
+}
+
+.ws-create-tile:hover {
+  border-color: var(--rg-accent);
+  background: var(--rg-accent-soft);
+}
+
+.ws-create-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rg-accent-soft);
+  font-size: 1.3rem;
+  margin-bottom: 0.2rem;
+}
+
+.ws-create-tile span:last-child {
+  font-size: 0.78rem;
+  color: var(--rg-text-faint);
+  font-weight: 400;
+}
+
+/* Sidebar */
+.ws-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ws-side-card {
+  padding: 1.3rem 1.4rem;
+}
+
+.ws-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rg-border);
+  font-size: 0.85rem;
+  color: var(--rg-text-muted);
+}
+
+.ws-stat-row:last-child {
+  border-bottom: none;
+}
+
+.ws-stat-row strong {
+  color: var(--rg-text);
+  font-size: 0.95rem;
+}
+
+.accent-owner {
+  color: #f59e0b !important;
+}
+
+.accent-shared {
+  color: #a78bfa !important;
+}
+
+.accent-invited {
+  color: #60a5fa !important;
+}
+
+.ws-activity-placeholder {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--rg-text-faint);
+  line-height: 1.5;
+}
+
+/* Empty state */
+.ws-empty {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ws-empty-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.ws-empty h3 {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 0.4rem 0;
+}
+
+.ws-empty p {
+  margin: 0;
+}
+
+/* Loading skeleton */
+.ws-card-skeleton {
+  min-height: 168px;
+  cursor: default;
+  border-left-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.035) 40%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.035) 60%
+  );
+  background-size: 200% 100%;
+  animation: ws-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes ws-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-card,
+  .ws-card-skeleton,
+  .ws-create-tile {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Additions: consistent page header, refined card materiality
+   ============================================================ */
+
+.ws-page-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -0.5rem 0 1.75rem 0;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rg-border);
+}
+
+.ws-page-icon {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rg-accent);
+  background: var(--rg-accent-soft);
+}
+
+.ws-page-subtitle {
+  margin: 0;
+  color: var(--rg-text-muted);
+  font-size: 0.88rem;
+}
+
+/* Upgrade card materiality to match the settings-card/id-card family:
+   deeper shadow, larger radius, glass-edge top highlight */
+.ws-card {
+  border-radius: 1rem;
+  box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.ws-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(255, 255, 255, 0.12) 70%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+.ws-card:hover {
+  box-shadow: 0 16px 36px -10px var(--accent);
+}
+
+.ws-side-card {
+  border-radius: 1rem;
+}

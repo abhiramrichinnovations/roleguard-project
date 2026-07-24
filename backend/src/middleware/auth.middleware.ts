@@ -1,89 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt';
-import { TokenPayload } from '../types/user';
 
 export interface AuthRequest extends Request {
-  user?: TokenPayload;
-  token?: string;
+  user?: {
+    userId: string;
+    email: string;
+    role: string;
+  };
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const token = extractToken(req);
+    const token = req.cookies?.accessToken;
 
     if (!token) {
-      res.status(401).json({
-        status: 'error',
-        message: 'No authentication token provided',
-      });
+      res.status(401).json({ status: 'error', message: 'No token provided' });
       return;
     }
 
-    const payload = verifyAccessToken(token);
-    req.user = payload;
-    req.token = token;
+    const decoded = verifyAccessToken(token);
 
+    req.user = decoded as unknown as { userId: string; email: string; role: string };
     next();
-  } catch (error) {
-    res.status(401).json({
-      status: 'error',
-      message: 'Invalid or expired token',
-    });
-    return;
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Invalid or expired token' });
   }
 };
 
-export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  try {
-    const token = extractToken(req);
-
-    if (token) {
-      const payload = verifyAccessToken(token);
-      req.user = payload;
-      req.token = token;
-    }
-
-    next();
-  } catch (error) {
-    next();
-  }
-};
-
-const extractToken = (req: AuthRequest): string | null => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.slice(7);
-  }
-
-  if (req.cookies?.accessToken) {
-    return req.cookies.accessToken;
-  }
-
-  if (req.headers['x-access-token']) {
-    return req.headers['x-access-token'] as string;
-  }
-
-  return null;
-};
-
-export const requireRole = (roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({
-        status: 'error',
-        message: 'Authentication required',
-      });
-      return;
-    }
-
-    if (!roles.includes(req.user.role)) {
-      res.status(403).json({
-        status: 'error',
-        message: 'Insufficient permissions',
-      });
-      return;
-    }
-
-    next();
-  };
-};
+export const authenticate = authMiddleware;
