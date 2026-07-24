@@ -27,6 +27,18 @@ const formatValidationError = (error: ZodError) => {
   }));
 };
 
+// Cross-domain cookies (Vercel frontend + Render backend) require
+// sameSite: 'none' paired with secure: true. In local dev, frontend and
+// backend are both on localhost (same-site, different ports), so 'strict'
+// works fine there. isProd drives both together since 'none' is rejected
+// by browsers unless the cookie is also marked secure.
+const isProd = process.env.NODE_ENV === 'production';
+const cookieBase = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: (isProd ? 'none' : 'strict') as 'none' | 'strict',
+};
+
 router.post('/register', registerLimiter, async (req: Request, res: Response) => {
   try {
     const validatedData = registerSchema.parse(req.body);
@@ -34,17 +46,13 @@ router.post('/register', registerLimiter, async (req: Request, res: Response) =>
     const { user, tokens } = await userService.register(validatedData);
 
     res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      ...cookieBase,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/api/auth/refresh',
     });
 
     res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      ...cookieBase,
       maxAge: 15 * 60 * 1000,
     });
 
@@ -94,17 +102,13 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
     const { user, tokens } = await userService.login(validatedData);
 
     res.cookie('refreshToken', tokens.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      ...cookieBase,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/api/auth/refresh',
     });
 
     res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      ...cookieBase,
       maxAge: 15 * 60 * 1000,
     });
 
@@ -160,9 +164,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     const tokens = await userService.refreshToken(decoded.userId);
 
     res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      ...cookieBase,
       maxAge: 15 * 60 * 1000,
     });
 
@@ -191,8 +193,8 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response) =
 
     await userService.logout(req.user.userId);
 
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.clearCookie('accessToken', cookieBase);
+    res.clearCookie('refreshToken', { ...cookieBase, path: '/api/auth/refresh' });
 
     return res.status(200).json({
       status: 'success',
