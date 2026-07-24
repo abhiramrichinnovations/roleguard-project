@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from '../store';
 import { fetchProfile, updateProfile, clearSuccessMessage } from '../store/slices/profileSlice';
 import { Layout } from '../components/Layout';
 import '../styles/profile.css';
-import '../styles/profile-dashboard.css';
+import '../styles/Profile-dashboard.css';
 
 const EditIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
