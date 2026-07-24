@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../store';
 import { fetchPendingInvitations, fetchWorkspaces, acceptInvite, declineInvite } from '../store/slices/workspaceSlice';
-import '../styles/invitations.css';
+import '../styles/Invitations.css';
 
 export const PendingInvitations: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
